@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Capoeira Eventos">
+  <rect width="64" height="64" rx="12" fill="#1a237e"/>
+  <circle cx="24" cy="24" r="10" fill="#ffffff"/>
+  <path d="M22 34c8 0 15 6 18 14h-6c-2-4-6-7-12-7z" fill="#ffb300"/>
+  <circle cx="39" cy="18" r="4" fill="#ffb300"/>
+</svg>
+

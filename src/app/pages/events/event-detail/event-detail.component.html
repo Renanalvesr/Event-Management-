@@ -1,0 +1,173 @@
+<div class="event-detail page-enter">
+
+  <!-- Back header -->
+  <div class="back-bar">
+    <a routerLink="/eventos" class="back-btn">
+      <span class="material-icons">arrow_back</span>
+      Eventos
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner"></div>
+  } @else if (!event()) {
+    <div class="empty-state container">
+      <span class="material-icons">event_busy</span>
+      <h3>Evento não encontrado</h3>
+      <p>O evento pode ter sido removido.</p>
+      <a routerLink="/eventos" class="btn btn-primary" style="margin-top:16px">Voltar para Eventos</a>
+    </div>
+  } @else {
+    <!-- Hero Image -->
+    <div class="hero-img">
+      <div class="hero-img__frame" (click)="openImage()" role="button" tabindex="0" (keydown.enter)="openImage()" (keydown.space)="$event.preventDefault(); openImage()">
+        <img [src]="event()!.imageUrl" [alt]="event()!.title" class="hero-img__poster">
+        <div class="hero-img__overlay"></div>
+        <div class="hero-img__hint">
+          <span class="material-icons">open_in_full</span>
+          Abrir imagem
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Title & badge -->
+      <div class="title-section">
+        <div class="badges">
+          <span class="badge" [class.badge-private]="event()!.visibility === 'PRIVATE'" [class.badge-public]="event()!.visibility === 'PUBLIC'">
+            <span class="material-icons">{{ event()!.visibility === 'PRIVATE' ? 'lock' : 'public' }}</span>
+            {{ event()!.visibility === 'PRIVATE' ? 'Evento de Grupo' : 'Evento Público' }}
+          </span>
+        </div>
+        <h1>{{ event()!.title }}</h1>
+      </div>
+
+      <!-- Info card -->
+      <div class="info-card card">
+        <h2 class="info-card__title">Informações</h2>
+
+        <div class="info-row">
+          <span class="material-icons icon-blue">calendar_today</span>
+          <div>
+            <small>Início</small>
+            <strong>{{ formatDate(event()!.startDate) }} - {{ formatTime(event()!.startDate) }}</strong>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="info-row">
+          <span class="material-icons icon-blue">event</span>
+          <div>
+            <small>Fim</small>
+            <strong>{{ formatDate(event()!.endDate) }} - {{ formatTime(event()!.endDate) }}</strong>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <button class="info-row info-row--link" (click)="openMaps()">
+          <span class="material-icons icon-accent">location_on</span>
+          <div>
+            <small>Local</small>
+            <strong class="link-text">{{ event()!.location }}</strong>
+          </div>
+          <span class="material-icons arrow-icon">open_in_new</span>
+        </button>
+
+        <div class="divider"></div>
+
+        <button class="info-row info-row--link" (click)="openWhatsApp()">
+          <div class="whatsapp-icon">
+            <span class="material-icons">chat</span>
+          </div>
+          <div>
+            <small>Contato</small>
+            <strong class="link-text">{{ event()!.contactPhone }}</strong>
+          </div>
+          <span class="material-icons arrow-icon">open_in_new</span>
+        </button>
+      </div>
+
+      <!-- Description -->
+      <div class="desc-card card">
+        <h2 class="info-card__title">Descrição</h2>
+        <p>{{ event()!.description }}</p>
+      </div>
+
+      @if (event()!.isPaid || (event()!.saleItems?.length ?? 0) > 0) {
+        <div class="desc-card card">
+          <h2 class="info-card__title">Valores e Itens</h2>
+
+          @if (event()!.isPaid) {
+            <div class="info-row" style="margin-bottom:10px;">
+              <span class="material-icons icon-accent">payments</span>
+              <div>
+                <small>Valor do evento</small>
+                <strong>{{ formatCurrency(event()!.ticketPrice ?? null) }}</strong>
+              </div>
+            </div>
+          }
+
+          @if ((event()!.saleItems?.length ?? 0) > 0) {
+            <div style="display:grid; gap:10px; margin-top:8px;">
+              @for (item of event()!.saleItems ?? []; track item.name) {
+                <div class="card" style="padding:12px;">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                    <div>
+                      <strong>{{ item.name }}</strong>
+                      <div style="font-size:13px; color:var(--text-secondary);">{{ formatCurrency(item.price) }}</div>
+                    </div>
+
+                    @if (auth.isLoggedIn()) {
+                      <button type="button" class="btn btn-outline btn-sm" (click)="toggleInterest(item)">
+                        {{ isInterested(item) ? 'Remover interesse' : 'Tenho interesse' }}
+                      </button>
+                    }
+                  </div>
+
+                  @if (auth.isAdmin()) {
+                    <div style="margin-top:8px; font-size:12px; color:var(--text-secondary);">
+                      Interessados: {{ item.interestedUserIds.length }}
+                      @if (item.interestedUserIds.length > 0) {
+                        - {{ getInterestedUsersText(item) }}
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Admin actions -->
+      @if (auth.isAdmin()) {
+        <div class="admin-actions">
+          <a [routerLink]="['/eventos/novo']" [queryParams]="{edit: event()!.id}" class="btn btn-outline">
+            <span class="material-icons">edit</span>
+            Editar
+          </a>
+          <button class="btn btn-danger" (click)="deleteEvent()" [disabled]="deleting()">
+            <span class="material-icons">delete</span>
+            {{ deleting() ? 'Excluindo…' : 'Excluir' }}
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (imageModalOpen()) {
+      <div class="image-modal" (click)="closeImageModal()">
+        <button class="image-modal__close" type="button" (click)="closeImageModal(); $event.stopPropagation()" aria-label="Fechar imagem">
+          <span class="material-icons">close</span>
+        </button>
+        <img
+          class="image-modal__content"
+          [src]="event()!.imageUrl"
+          [alt]="event()!.title"
+          (click)="$event.stopPropagation()">
+      </div>
+    }
+  }
+
+</div>

@@ -1,0 +1,226 @@
+<div class="org-admin page-enter">
+
+  <!-- Header -->
+  <div class="org-header">
+    <div class="container">
+      <div class="header-row">
+        <div>
+          <h1>
+            <span class="material-icons">business</span>
+            Minha Organização
+          </h1>
+          <p>Gerencie sua organização, unidades e membros.</p>
+        </div>
+          <a routerLink="/usuarios" class="btn btn-outline" style="color: white;">
+          <span class="material-icons">group</span>
+          Usuários
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container org-content">
+
+    @if (message()) {
+      <div class="feedback feedback--success">
+        <span class="material-icons">check_circle</span>
+        {{ message() }}
+      </div>
+    }
+    @if (error()) {
+      <div class="feedback feedback--error">
+        <span class="material-icons">error_outline</span>
+        {{ error() }}
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="spinner"></div>
+    } @else if (!rootOrg()) {
+      <div class="empty-state card">
+        <span class="material-icons">info</span>
+        <p>Você ainda não administra nenhuma organização.</p>
+        <a routerLink="/cadastro" class="btn btn-primary">Criar organização</a>
+      </div>
+    } @else {
+
+      <!-- Root org card -->
+      <section class="card org-card">
+        <div class="org-card__header">
+          @if (rootOrg()!.logoUrl) {
+            <img [src]="rootOrg()!.logoUrl" [alt]="rootOrg()!.name" class="org-logo">
+          } @else {
+            <div class="org-logo-placeholder">
+              <span class="material-icons">sports_martial_arts</span>
+            </div>
+          }
+          <div class="org-card__info">
+            <h2>{{ rootOrg()!.name }}</h2>
+            <p class="org-meta">
+              <span class="material-icons">location_on</span>
+              {{ rootOrg()!.city }}, {{ rootOrg()!.state }}
+              <span class="sep">•</span>
+              <span class="material-icons">key</span>
+              Código sede: <strong>{{ rootOrg()!.joinCode }}</strong>
+            </p>
+            <p class="org-desc">{{ rootOrg()!.description }}</p>
+          </div>
+        </div>
+
+        <div class="org-stats">
+          <div class="stat">
+            <span class="stat-value">{{ units().length }}</span>
+            <span class="stat-label">Unidade(s)</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ familyUsers().length }}</span>
+            <span class="stat-label">Membros totais</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Units section -->
+      <section class="units-section">
+        <div class="section-header">
+          <h2>
+            <span class="material-icons">apartment</span>
+            Unidades
+          </h2>
+          @if (auth.isOrgSuperAdmin()) {
+            <button class="btn btn-primary btn-sm" (click)="showUnitForm = !showUnitForm">
+              <span class="material-icons">add</span>
+              Nova Unidade
+            </button>
+          }
+        </div>
+
+        <!-- Create unit form -->
+        @if (showUnitForm) {
+          <div class="card unit-form">
+            <h3>Nova Unidade</h3>
+            <div class="form-grid">
+              <div class="field">
+                <label>Nome da unidade *</label>
+                <input type="text" [(ngModel)]="unitForm.name" placeholder="Ex: ACNSB - Unidade Norte">
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Cidade *</label>
+                  <input type="text" [(ngModel)]="unitForm.city" placeholder="Campinas">
+                </div>
+                <div class="field field--small">
+                  <label>Estado *</label>
+                  <input type="text" [(ngModel)]="unitForm.state" placeholder="SP" maxlength="2"
+                         style="text-transform:uppercase">
+                </div>
+              </div>
+              <div class="field">
+                <label>Descrição</label>
+                <textarea [(ngModel)]="unitForm.description" rows="2"
+                          placeholder="Descreva esta unidade…"></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" (click)="createUnit()" [disabled]="saving()">
+                {{ saving() ? 'Criando…' : 'Criar Unidade' }}
+              </button>
+              <button class="btn btn-outline" (click)="cancelUnitForm()">Cancelar</button>
+            </div>
+          </div>
+        }
+
+        @if (units().length === 0) {
+          <div class="empty-units">
+            <span class="material-icons">apartment</span>
+            <p>Nenhuma unidade criada ainda.</p>
+            @if (auth.isOrgSuperAdmin()) {
+              <p><small>Clique em "Nova Unidade" para criar a primeira.</small></p>
+            }
+          </div>
+        } @else {
+          <div class="units-grid">
+            @for (unit of units(); track unit.id) {
+              <div class="card unit-card">
+                <div class="unit-card__header">
+                  <span class="material-icons unit-icon">apartment</span>
+                  <div>
+                    <strong>{{ unit.name }}</strong>
+                    <span class="unit-location">
+                      <span class="material-icons">location_on</span>
+                      {{ unit.city }}, {{ unit.state }}
+                    </span>
+                  </div>
+                </div>
+                <div class="unit-code">
+                  <span class="material-icons">key</span>
+                  Código: <strong>{{ unit.joinCode }}</strong>
+                </div>
+                <div class="unit-members">
+                  <span class="material-icons">people</span>
+                  {{ usersOfOrg(unit.id).length }} membro(s)
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Family members section -->
+      <section class="members-section">
+        <h2>
+          <span class="material-icons">people</span>
+          Membros da Organização
+        </h2>
+
+        <!-- Root org members -->
+        @if (usersOfOrg(rootOrg()!.id).length > 0) {
+          <div class="members-group">
+            <h4>{{ rootOrg()!.name }}</h4>
+            <div class="members-list">
+              @for (user of usersOfOrg(rootOrg()!.id); track user.id) {
+                <div class="member-row">
+                  <img [src]="user.avatarUrl" [alt]="user.name" class="member-avatar">
+                  <div class="member-info">
+                    <strong>{{ user.name }}</strong>
+                    <small>{{ user.email }}</small>
+                  </div>
+                  <span class="badge" [class.badge-admin]="user.role === 'ADMIN' || user.role === 'SUPER_ADMIN'">
+                    {{ roleLabel(user.role) }}
+                  </span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Unit members -->
+        @for (unit of units(); track unit.id) {
+          @if (usersOfOrg(unit.id).length > 0) {
+            <div class="members-group">
+              <h4>{{ unit.name }}</h4>
+              <div class="members-list">
+                @for (user of usersOfOrg(unit.id); track user.id) {
+                  <div class="member-row">
+                    <img [src]="user.avatarUrl" [alt]="user.name" class="member-avatar">
+                    <div class="member-info">
+                      <strong>{{ user.name }}</strong>
+                      <small>{{ user.email }}</small>
+                    </div>
+                    <span class="badge" [class.badge-admin]="user.role === 'ADMIN' || user.role === 'SUPER_ADMIN'">
+                      {{ roleLabel(user.role) }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+
+        @if (familyUsers().length === 0) {
+          <p class="empty-text">Nenhum membro encontrado.</p>
+        }
+      </section>
+    }
+  </div>
+</div>
+

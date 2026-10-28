@@ -1,0 +1,188 @@
+/* ===========================
+   Global Styles - Capoeira Eventos
+   Mobile-first, iOS optimized
+   =========================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --primary: #1a237e;
+  --primary-light: #3949ab;
+  --primary-dark: #0d1257;
+  --accent: #f57f17;
+  --accent-light: #ffb300;
+  --bg: #f0f4ff;
+  --bg-card: #ffffff;
+  --bg-dark: #0d1b2a;
+  --text-primary: #1a1a2e;
+  --text-secondary: #5c6880;
+  --text-on-primary: #ffffff;
+  --border: #e0e5f2;
+  --shadow: 0 2px 12px rgba(26, 35, 126, 0.12);
+  --shadow-card: 0 4px 20px rgba(26, 35, 126, 0.10);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--primary-light);
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  outline: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary-light);
+  border-radius: 4px;
+}
+
+/* Utility classes */
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  min-height: 48px;
+
+  &-primary {
+    background: var(--primary);
+    color: var(--text-on-primary);
+    &:hover { background: var(--primary-light); }
+    &:active { transform: scale(0.97); }
+  }
+
+  &-outline {
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    &:hover { background: rgba(26, 35, 126, 0.05); }
+  }
+
+  &-accent {
+    background: var(--accent);
+    color: var(--text-on-primary);
+    &:hover { background: var(--accent-light); }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &-full { width: 100%; }
+}
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+
+  &-public { background: #e8f5e9; color: #2e7d32; }
+  &-private { background: #fce4ec; color: #c62828; }
+  &-admin { background: #e3f2fd; color: #1565c0; }
+}
+
+.material-icons {
+  font-size: inherit;
+  vertical-align: middle;
+}
+
+/* Page transition */
+.page-enter {
+  animation: fadeSlideIn 0.3s ease;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 40px auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-secondary);
+
+  .material-icons { font-size: 64px; opacity: 0.3; display: block; margin-bottom: 16px; }
+  h3 { margin: 0 0 8px; font-size: 18px; }
+  p  { margin: 0; font-size: 14px; }
+}

@@ -1,0 +1,145 @@
+<div class="home page-enter">
+
+  <!-- Hero Banner -->
+  <section
+    class="hero"
+    [class.hero--default]="showDefaultHero"
+    [class.hero--organization]="showOrganizationHero"
+    [class.hero--name-only]="showOrganizationNameOnlyHero"
+    [style.background-image]="heroBackgroundImage">
+    @if (hasOrganizationMembership && userOrg?.logoUrl) {
+      <img
+        class="hero__bg-preload"
+        [src]="heroOrganizationLogo"
+        alt=""
+        aria-hidden="true"
+        (error)="onOrganizationHeroImageError()"
+        (load)="onOrganizationHeroImageLoad()">
+    }
+    <div class="hero__overlay"></div>
+    <div class="hero__content container">
+      @if (showOrganizationHero && userOrg) {
+        <div class="hero__org-chip">
+          <img
+            [src]="heroOrganizationLogo"
+            [alt]="heroOrganizationName"
+            class="hero__org-logo">
+          <div>
+            <small>Seu grupo</small>
+            <strong>{{ heroOrganizationName }}</strong>
+            <span>{{ heroOrganizationLocation }}</span>
+          </div>
+        </div>
+      }
+      <h1>Bonfim <span>Eventos</span></h1>
+      <p>Descubra batizados, workshops e eventos de capoeira perto de você.</p>
+      <a routerLink="/eventos" class="btn btn-accent">
+        <span class="material-icons">event</span>
+        Ver Eventos
+      </a>
+    </div>
+  </section>
+
+  <!-- Quick modules -->
+  <section class="modules container">
+    <a routerLink="/eventos" class="module-card">
+      <div class="module-card__img">
+        <img [src]="featuredEventsImage" alt="Eventos de Capoeira">
+        <div class="module-card__img-overlay"></div>
+      </div>
+      <div class="module-card__label">
+        <span class="material-icons">event</span>
+        Eventos
+      </div>
+    </a>
+  </section>
+
+  <!-- Setup panel: join or create group -->
+  @if (auth.isLoggedIn() && organizationsLoaded && !hasOrganizationMembership) {
+    <section class="setup-section container">
+      <div class="setup-card card">
+        <div class="setup-card__col">
+          <h4><span class="material-icons">key</span> Aderir com código</h4>
+          <p>Digite o código fornecido pelo seu grupo.</p>
+          <div class="setup-inline">
+            <input type="text" [(ngModel)]="joinCode" placeholder="Ex: ACNSB2026" />
+            <button type="button" class="btn btn-primary" (click)="joinOrganization()">Aderir</button>
+          </div>
+        </div>
+
+        <div class="setup-card__divider"></div>
+
+        <div class="setup-card__col">
+          <h4><span class="material-icons">add_business</span> Criar organização</h4>
+          <p>Crie um novo grupo e convide outros capoeiristas.</p>
+          <input type="text" [(ngModel)]="newOrgName" placeholder="Nome do grupo" />
+          <div class="setup-inline setup-inline--triple">
+            <input type="text" [(ngModel)]="newOrgCity" placeholder="Cidade" />
+            <input type="text" [(ngModel)]="newOrgState" placeholder="UF" maxlength="2" style="text-transform:uppercase" />
+            <button type="button" class="btn btn-outline" (click)="createOrganization()">Criar</button>
+          </div>
+        </div>
+
+        @if (orgSetupError) {
+          <p class="setup-card__feedback setup-card__feedback--error">
+            <span class="material-icons">error_outline</span> {{ orgSetupError }}
+          </p>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Sobre -->
+  <section class="about-section container">
+    <div class="about-card card">
+      <div class="about-card__icon"></div>
+      <h2>Capoeira perto de você</h2>
+      <p>
+        Descubra batizados, workshops e eventos de capoeira acontecendo perto de você e conecte-se com a comunidade capoeirista local e internacional.
+        Encontre encontros que celebram a cultura, a música e o movimento da capoeira — desde batizados emocionantes e trocas de corda até workshops com mestres e eventos especiais para todos os níveis.
+      </p>
+      <p>
+        Participe, aprenda, jogue e viva a capoeira além da roda. Fique por dentro das próximas datas, locais e detalhes dos eventos, tudo em um só lugar.
+      </p>
+      <p class="about-card__call">A capoeira está acontecendo. Você está dentro? ‍♂️</p>
+    </div>
+  </section>
+
+  <!-- My Organization section -->
+  @if (userOrg) {
+    <section class="org-section container">
+      <h2 class="section-title">Meu Grupo</h2>
+      <div class="org-card card">
+        <div class="org-card__header">
+          <img [src]="userOrg.logoUrl" [alt]="userOrg.name" class="org-logo">
+          <div>
+            <h3>{{ userOrg.name }}</h3>
+            <p class="org-location">
+              <span class="material-icons">location_on</span>
+              {{ userOrg.city }}, {{ userOrg.state }}
+            </p>
+          </div>
+        </div>
+        <p class="org-desc">{{ userOrg.description }}</p>
+        <a routerLink="/eventos" class="btn btn-primary btn-full">
+          <span class="material-icons">lock</span>
+          Ver Eventos do Grupo
+        </a>
+      </div>
+    </section>
+  }
+
+  <!-- Organization list (if not a member yet) -->
+  @if (!auth.isLoggedIn()) {
+    <section class="cta-section container">
+      <div class="cta-card card">
+        <span class="material-icons cta-icon">group</span>
+        <h3>Faça parte de um grupo</h3>
+        <p>Cadastre-se com o código do seu grupo para ter acesso a eventos exclusivos.</p>
+        <a routerLink="/cadastro" class="btn btn-primary btn-full">Criar conta</a>
+        <a routerLink="/login" class="btn btn-outline btn-full" style="margin-top: 10px">Já tenho conta</a>
+      </div>
+    </section>
+  }
+
+</div>

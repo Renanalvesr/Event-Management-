@@ -1,0 +1,55 @@
+<div class="auth-page page-enter">
+  <div class="auth-card card">
+    <h1>Entrar</h1>
+    <p class="subtitle">Acesse sua conta para ver eventos do seu grupo.</p>
+
+    @if (error()) {
+      <div class="form-error">
+        <span class="material-icons">error_outline</span>
+        {{ error() }}
+      </div>
+    }
+
+    <form (ngSubmit)="submit()" class="auth-form">
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" [(ngModel)]="email" name="email" placeholder="voce@email.com">
+      </div>
+
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" [(ngModel)]="password" name="password" placeholder="******">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+        @if (loading()) { Entrando... } @else { Entrar }
+      </button>
+    </form>
+
+    <div class="quick-login">
+      <small>Entrar rápido (teste):</small>
+      <div class="quick-login__grid">
+        @for (profile of quickLogins; track profile.email) {
+          <button type="button" class="btn btn-outline btn-sm" (click)="quickLogin(profile)" [disabled]="loading()">
+            {{ profile.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <p class="helper">
+      Não tem conta?
+      <a routerLink="/cadastro">Cadastre-se</a>
+    </p>
+
+    <div class="demo-box">
+      <small>Demo:</small>
+      <small>Super Admin: superadmin&#64;capoeira.com / super123</small>
+      <small>Admin: bonfim&#64;capoeira.com / admin123</small>
+      <small>Admin: brasil&#64;capoeira.com / admin123</small>
+      <small>Admin: lagoa&#64;capoeira.com / admin123</small>
+      <small>Usuário: renan&#64;capoeira.com / user123</small>
+      <small>Usuário: ricardo&#64;capoeira.com / user123</small>
+    </div>
+  </div>
+</div>

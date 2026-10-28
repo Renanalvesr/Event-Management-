@@ -1,0 +1,226 @@
+<div class="event-form page-enter">
+  <div class="form-header">
+    <div class="container">
+      <a routerLink="/eventos" class="back-btn">
+        <span class="material-icons">arrow_back</span>
+      </a>
+      <h1>{{ editingEventId ? 'Editar Evento' : 'Novo Evento' }}</h1>
+    </div>
+  </div>
+
+  <div class="container">
+    <form (ngSubmit)="submit()" class="form-card card">
+
+      @if (error()) {
+        <div class="form-error">
+          <span class="material-icons">error_outline</span>
+          {{ error() }}
+        </div>
+      }
+
+      <!-- ── Título ── -->
+      <div class="field">
+        <label>Título <span class="req">*</span></label>
+        <input type="text" [(ngModel)]="form.title" name="title" placeholder="Ex: Batizado e Workshop de Capoeira" maxlength="100">
+      </div>
+
+      <!-- ── Descrição ── -->
+      <div class="field">
+        <label>Descrição</label>
+        <textarea [(ngModel)]="form.description" name="description" rows="4" placeholder="Detalhes do evento…"></textarea>
+      </div>
+
+      <!-- ── Datas ── -->
+      <div class="fields-row">
+        <div class="field">
+          <label>Data/Hora de Início <span class="req">*</span></label>
+          <input type="datetime-local" [(ngModel)]="form.startDate" name="startDate">
+        </div>
+        <div class="field">
+          <label>Data/Hora de Fim <span class="req">*</span></label>
+          <input type="datetime-local" [(ngModel)]="form.endDate" name="endDate">
+        </div>
+      </div>
+
+      <!-- ── Local ── -->
+      <div class="field">
+        <label>Local <span class="req">*</span></label>
+        <input type="text" [(ngModel)]="form.location" name="location" placeholder="Nome do espaço">
+      </div>
+
+      <div class="field">
+        <label>Link do Local (Google Maps)</label>
+        <input type="url" [(ngModel)]="form.locationUrl" name="locationUrl" placeholder="https://maps.google.com/...">
+      </div>
+
+      <!-- ── Contato ── -->
+      <div class="field">
+        <label>Telefone/WhatsApp de Contato <span class="req">*</span></label>
+        <input type="tel" [(ngModel)]="form.contactPhone" name="contactPhone" placeholder="+55 11 9 9999-9999">
+      </div>
+
+      <!-- ── Imagem ── -->
+      <div class="field">
+        <label>Upload da Imagem</label>
+        <input type="file" accept="image/*" (change)="onImageSelected($event)">
+        @if (uploadingImage()) {
+          <small>Enviando imagem...</small>
+        } @else if (selectedImageName) {
+          <small>Arquivo selecionado: {{ selectedImageName }}</small>
+        }
+      </div>
+
+      <div class="field">
+        <label>URL da Imagem do Evento</label>
+        <input type="url" [(ngModel)]="form.imageUrl" name="imageUrl" placeholder="https://...">
+      </div>
+
+      <!-- ── Pagamento ── -->
+      <div class="fields-row">
+        <div class="field">
+          <label>Evento Pago?</label>
+          <select [(ngModel)]="form.isPaid" name="isPaid" (ngModelChange)="onPaidChange()">
+            <option [ngValue]="false">Não</option>
+            <option [ngValue]="true">Sim</option>
+          </select>
+        </div>
+
+        @if (form.isPaid) {
+          <div class="field">
+            <label>Valor do Evento (R$) <span class="req">*</span></label>
+            <input type="number" min="0" step="0.01" [(ngModel)]="form.ticketPrice" name="ticketPrice" placeholder="Ex: 50.00">
+          </div>
+        }
+      </div>
+
+      <!-- ── Itens à venda ── -->
+      <div class="field">
+        <label>Itens à venda (opcional)</label>
+        <div class="fields-row">
+          <input type="text" [(ngModel)]="saleItemName" name="saleItemName" placeholder="Ex: CD de ladainhas">
+          <input type="number" min="0" step="0.01" [(ngModel)]="saleItemPrice" name="saleItemPrice" placeholder="Valor (R$)">
+        </div>
+        <button type="button" class="btn btn-outline" (click)="addSaleItem()" style="margin-top:8px;">
+          <span class="material-icons">add</span>
+          Adicionar item
+        </button>
+
+        @if ((form.saleItems?.length ?? 0) > 0) {
+          <div class="sale-items-list" style="margin-top:10px; display:grid; gap:8px;">
+            @for (item of form.saleItems ?? []; track item.name) {
+              <div class="card" style="padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div>
+                  <strong>{{ item.name }}</strong>
+                  <div style="font-size:12px; color:var(--text-secondary);">R$ {{ item.price.toFixed(2) }}</div>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm" (click)="removeSaleItem(item.name)">Remover</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════════
+           SCOPE SELECTOR — Público / Organização / Unidade
+           ════════════════════════════════════════════════════════════ -->
+      <div class="field scope-field">
+        <label>Quem pode ver este evento? <span class="req">*</span></label>
+
+        <div class="scope-options">
+
+          <!-- PUBLIC -->
+          <label class="scope-card" [class.scope-card--active]="eventScope === 'PUBLIC'">
+            <input type="radio" name="eventScope" value="PUBLIC"
+                   [(ngModel)]="eventScope" (ngModelChange)="onScopeChange()">
+            <span class="scope-card__icon material-icons">public</span>
+            <span class="scope-card__title">Público</span>
+            <span class="scope-card__desc">Visível para qualquer pessoa no app</span>
+          </label>
+
+          <!-- ORG — only for SUPER_ADMINs -->
+          @if (canUseScope('ORG')) {
+            <label class="scope-card" [class.scope-card--active]="eventScope === 'ORG'">
+              <input type="radio" name="eventScope" value="ORG"
+                     [(ngModel)]="eventScope" (ngModelChange)="onScopeChange()">
+              <span class="scope-card__icon material-icons">business</span>
+              <span class="scope-card__title">Organização</span>
+              <span class="scope-card__desc">Todos os membros da organização e suas unidades</span>
+            </label>
+          }
+
+          <!-- UNIT -->
+          @if (canUseScope('UNIT')) {
+            <label class="scope-card" [class.scope-card--active]="eventScope === 'UNIT'">
+              <input type="radio" name="eventScope" value="UNIT"
+                     [(ngModel)]="eventScope" (ngModelChange)="onScopeChange()">
+              <span class="scope-card__icon material-icons">apartment</span>
+              <span class="scope-card__title">Unidade</span>
+              <span class="scope-card__desc">Apenas membros de uma unidade específica</span>
+            </label>
+          }
+
+        </div>
+
+        <!-- ── ORG scope: org picker (platform admin only) or info box ── -->
+        @if (eventScope === 'ORG') {
+          @if (auth.isPlatformSuperAdmin()) {
+            <div class="scope-detail">
+              <label>Selecione a organização</label>
+              <select [(ngModel)]="form.organizationId" name="orgId_scope">
+                <option [ngValue]="null">— escolha —</option>
+                @for (org of availableRootOrgs; track org.id) {
+                  <option [ngValue]="org.id">{{ org.name }}</option>
+                }
+              </select>
+            </div>
+          } @else if (rootOrg) {
+            <div class="scope-info">
+              <span class="material-icons">info</span>
+              Evento visível para todos os membros de
+              <strong>{{ rootOrg.name }}</strong>
+              @if (orgUnits.length > 0) {
+                e suas {{ orgUnits.length }} unidade(s).
+              }
+            </div>
+          }
+        }
+
+        <!-- ── UNIT scope: unit picker or fixed info box ── -->
+        @if (eventScope === 'UNIT') {
+          @if (auth.isSuperAdmin() && availableUnits.length > 0) {
+            <div class="scope-detail">
+              <label>Selecione a unidade</label>
+              <select [(ngModel)]="form.organizationId" name="unitId_scope">
+                <option [ngValue]="null">— escolha —</option>
+                @for (unit of availableUnits; track unit.id) {
+                  <option [ngValue]="unit.id">
+                    {{ unit.name }}
+                    @if (unit.parentOrganizationId === null) { (sede) }
+                  </option>
+                }
+              </select>
+            </div>
+          } @else {
+            <div class="scope-info">
+              <span class="material-icons">apartment</span>
+              Evento visível apenas para membros de
+              <strong>{{ currentUnitName }}</strong>.
+            </div>
+          }
+        }
+
+      </div>
+      <!-- ── end scope selector ── -->
+
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="saving()">
+        @if (saving()) {
+          <span>Salvando…</span>
+        } @else {
+          <span class="material-icons">save</span>
+          <span>{{ editingEventId ? 'Atualizar Evento' : 'Publicar Evento' }}</span>
+        }
+      </button>
+
+    </form>
+  </div>
+</div>

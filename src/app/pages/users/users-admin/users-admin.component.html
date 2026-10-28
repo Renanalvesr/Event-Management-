@@ -1,0 +1,132 @@
+<div class="users-admin page-enter">
+  <div class="users-header">
+    <div class="container">
+      <div class="header-row">
+        <div>
+          <h1>Gestão de Usuários</h1>
+          <p>Apenas administradores podem adicionar novos usuários.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container content-grid">
+    <section class="card form-card">
+      <h2>{{ editingUserId() !== null ? 'Editar Usuário' : 'Novo Usuário' }}</h2>
+
+      @if (error()) {
+        <div class="form-error">{{ error() }}</div>
+      }
+
+      @if (message()) {
+        <div class="form-success">{{ message() }}</div>
+      }
+
+      <form (ngSubmit)="submit()" class="form-grid">
+        <div class="field">
+          <label>Nome</label>
+          <input type="text" [(ngModel)]="form.name" name="name" placeholder="Nome do usuário">
+        </div>
+
+        <div class="field">
+          <label>E-mail</label>
+          <input type="email" [(ngModel)]="form.email" name="email" placeholder="usuario@email.com">
+        </div>
+
+        <div class="field">
+          <label>Senha</label>
+          <input
+            type="text"
+            [(ngModel)]="form.password"
+            name="password"
+            [disabled]="editingUserId() !== null"
+            [placeholder]="editingUserId() !== null ? 'Senha não é alterada aqui' : 'Defina uma senha'">
+        </div>
+
+        <div class="field">
+          <label>Perfil</label>
+          <select [(ngModel)]="form.role" name="role">
+            <option value="USER">Usuário</option>
+            <option value="MEMBER">Membro</option>
+            @if (canCreateAdmin()) {
+              <option value="ADMIN">Admin (Unidade)</option>
+              @if (auth.isPlatformSuperAdmin()) {
+                <option value="SUPER_ADMIN" [disabled]="editingUserId() === null">Super Admin</option>
+              }
+            }
+          </select>
+        </div>
+
+        @if (form.role !== 'USER') {
+          <div class="field">
+            <label>Grupo (opcional)</label>
+            <select [(ngModel)]="form.organizationId" name="organizationId">
+              @if (auth.isSuperAdmin()) {
+                <option [ngValue]="null">Sem grupo</option>
+                @for (org of organizations; track org.id) {
+                  <option [ngValue]="org.id">{{ org.name }}</option>
+                }
+              } @else {
+                @for (org of organizations; track org.id) {
+                  @if (org.id === auth.getUserOrganizationId()) {
+                    <option [ngValue]="org.id">{{ org.name }}</option>
+                  }
+                }
+              }
+            </select>
+          </div>
+        }
+
+        @if (editingUserId() !== null && auth.isSuperAdmin()) {
+          <div class="field">
+            <label>Status</label>
+            <select [(ngModel)]="editActive" name="editActive">
+              <option [ngValue]="true">Ativo</option>
+              <option [ngValue]="false">Inativo</option>
+            </select>
+          </div>
+        }
+
+        <div class="actions-row">
+          <button class="btn btn-primary btn-full actions-row__btn" type="submit" [disabled]="saving()">
+            {{ saving() ? 'Salvando...' : (editingUserId() !== null ? 'Salvar Alterações' : 'Adicionar Usuário') }}
+          </button>
+          @if (editingUserId() !== null) {
+            <button class="btn btn-outline btn-full actions-row__btn" type="button" (click)="cancelEdit()">
+              Cancelar
+            </button>
+          }
+        </div>
+      </form>
+    </section>
+
+    <section class="card list-card">
+      <h2>Usuários Cadastrados</h2>
+
+      @if (loading()) {
+        <div class="spinner"></div>
+      } @else {
+        <div class="users-list">
+          @for (user of users(); track user.id) {
+            <div class="user-row">
+              <img [src]="user.avatarUrl" [alt]="user.name">
+              <div class="user-row__meta">
+                <strong>{{ user.name }}</strong>
+                <small>{{ user.email }}</small>
+              </div>
+              <span class="badge" [class.badge-admin]="user.role === 'ADMIN' || user.role === 'SUPER_ADMIN'">
+                {{ roleLabel(user.role) }}
+              </span>
+
+              @if (auth.isSuperAdmin()) {
+                <button class="btn btn-outline btn-sm user-row__edit" type="button" (click)="startEdit(user)">
+                  Editar
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</div>

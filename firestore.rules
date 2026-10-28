@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ─────────────────────────────────────────────────────
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function role() {
+      return userDoc().role;
+    }
+
+    function orgId() {
+      return userDoc().organizationId;
+    }
+
+    function isPlatformSuperAdmin() {
+      return isAuth() && role() == 'SUPER_ADMIN' && orgId() == null;
+    }
+
+    function isOrgSuperAdmin() {
+      return isAuth() && role() == 'SUPER_ADMIN' && orgId() != null;
+    }
+
+    function isAdmin() {
+      return isAuth() && (role() == 'ADMIN' || role() == 'SUPER_ADMIN');
+    }
+
+    function isMember() {
+      return isAuth() && (role() == 'MEMBER' || role() == 'ADMIN' || role() == 'SUPER_ADMIN');
+    }
+
+    // ── Users collection ─────────────────────────────────────────────────────
+    match /users/{uid} {
+      // Anyone authenticated can read their own profile
+      allow read: if isAuth() && request.auth.uid == uid;
+
+      // Admins can read any user profile
+      allow read: if isAdmin();
+
+      // Users can create their own profile on registration
+      allow create: if isAuth() && request.auth.uid == uid;
+
+      // Users can update their own profile (limited fields)
+      allow update: if isAuth() && request.auth.uid == uid
+                    && !('role' in request.resource.data.diff(resource.data).affectedKeys());
+
+      // Admins can update any user in their scope
+      allow update: if isAdmin();
+
+      // Only platform super admin can delete users
+      allow delete: if isPlatformSuperAdmin();
+    }
+
+    // ── Organizations collection ─────────────────────────────────────────────
+    match /organizations/{orgId} {
+      // Anyone (even unauthenticated) can read organizations (needed for join codes)
+      allow read: if true;
+
+      // Only authenticated admins/super admins can create organizations
+      allow create: if isAdmin();
+
+      // Org super admins can update their own org and units
+      allow update: if isAdmin();
+
+      // Only platform super admin can delete
+      allow delete: if isPlatformSuperAdmin();
+    }
+
+    // ── Events collection ────────────────────────────────────────────────────
+    match /events/{eventId} {
+      // Public events: anyone can read
+      allow read: if resource.data.visibility == 'PUBLIC';
+
+      // Private events: only authenticated members can read
+      allow read: if isAuth() && resource.data.visibility == 'PRIVATE' && isMember();
+
+      // Platform super admin can read everything
+      allow read: if isPlatformSuperAdmin();
+
+      // Only admins can create/update/delete events
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}
+

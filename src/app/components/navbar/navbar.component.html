@@ -1,0 +1,73 @@
+<nav class="navbar">
+  <div class="navbar__inner">
+    <!-- Logo -->
+    <a class="navbar__logo" routerLink="/" (click)="closeMenu()">
+      <span class="material-icons">sports_martial_arts</span>
+      <span class="navbar__brand">Bonfim <strong>Eventos</strong></span>
+    </a>
+
+    <!-- Desktop links -->
+    <ul class="navbar__links">
+      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Home</a></li>
+      <li><a routerLink="/eventos" routerLinkActive="active">Eventos</a></li>
+      @if (auth.isAdmin()) {
+        <li><a routerLink="/eventos/novo" routerLinkActive="active">+ Criar Evento</a></li>
+        <li><a routerLink="/usuarios" routerLinkActive="active">Usuários</a></li>
+      }
+      @if (auth.isSuperAdmin()) {
+        <li><a routerLink="/organizacao" routerLinkActive="active">Organização</a></li>
+      }
+    </ul>
+
+    <!-- Desktop right actions -->
+    <div class="navbar__actions">
+
+      @if (auth.isLoggedIn()) {
+        <div class="user-info">
+          <img [src]="auth.currentUser()?.avatarUrl" [alt]="auth.currentUser()?.name" class="avatar">
+          <span class="user-name">{{ auth.currentUser()?.name }}</span>
+        </div>
+        <button class="btn btn-outline btn-sm" (click)="logout()">Sair</button>
+      } @else {
+        <a routerLink="/login" class="btn btn-outline btn-sm">Entrar</a>
+        <a routerLink="/cadastro" class="btn btn-primary btn-sm">Cadastrar</a>
+      }
+    </div>
+
+    <!-- Mobile hamburger -->
+    <button class="hamburger" (click)="toggleMenu()" [class.open]="menuOpen()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  @if (menuOpen()) {
+    <div class="mobile-menu" (click)="closeMenu()">
+      <ul>
+        <li><a routerLink="/">Home</a></li>
+        <li><a routerLink="/eventos">Eventos</a></li>
+        @if (auth.isAdmin()) {
+          <li><a routerLink="/eventos/novo">+ Criar Evento</a></li>
+          <li><a routerLink="/usuarios">Usuários</a></li>
+        }
+        @if (auth.isSuperAdmin()) {
+          <li><a routerLink="/organizacao">Organização</a></li>
+        }
+        <li class="divider"></li>
+        @if (auth.isLoggedIn()) {
+          <li class="user-mobile">
+            <img [src]="auth.currentUser()?.avatarUrl" [alt]="auth.currentUser()?.name" class="avatar">
+            <div>
+              <strong>{{ auth.currentUser()?.name }}</strong>
+              <small>{{ auth.currentUser()?.email }}</small>
+            </div>
+          </li>
+          <li><button class="btn btn-outline btn-full" (click)="logout()">Sair</button></li>
+        } @else {
+          <li><a routerLink="/login" class="btn btn-primary btn-full">Entrar</a></li>
+          <li><a routerLink="/cadastro" class="btn btn-primary btn-full">Cadastrar</a></li>
+        }
+      </ul>
+    </div>
+  }
+</nav>

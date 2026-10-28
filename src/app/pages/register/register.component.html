@@ -1,0 +1,123 @@
+<div class="auth-page page-enter">
+  <div class="auth-card card">
+    <h1>Criar Conta</h1>
+    <p class="subtitle">Entre para uma comunidade e acompanhe eventos exclusivos.</p>
+
+    @if (error()) {
+      <div class="form-error">
+        <span class="material-icons">error_outline</span>
+        {{ error() }}
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="form-success">
+        <span class="material-icons">check_circle</span>
+        {{ successMessage() }}
+        <small>Redirecionando para sua organização…</small>
+      </div>
+    }
+
+    @if (!successMessage()) {
+      <form (ngSubmit)="submit()" class="auth-form">
+        <div class="field">
+          <label>Nome completo</label>
+          <input type="text" [(ngModel)]="name" name="name" placeholder="Seu nome">
+        </div>
+
+        <div class="field">
+          <label>E-mail</label>
+          <input type="email" [(ngModel)]="email" name="email" placeholder="voce@email.com">
+        </div>
+
+        <div class="field">
+          <label>Senha</label>
+          <input type="password" [(ngModel)]="password" name="password" placeholder="Mínimo 6 caracteres">
+        </div>
+
+        <div class="field">
+          <label>Confirmar senha</label>
+          <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Repita a senha">
+        </div>
+
+        <!-- Mode selector -->
+        <div class="field mode-selector">
+          <label>Deseja participar de algum grupo?</label>
+          <div class="mode-options">
+            <label class="mode-option" [class.active]="mode === 'none'">
+              <input type="radio" name="mode" value="none" [(ngModel)]="mode">
+              <span class="material-icons">person</span>
+              <span>Só criar conta</span>
+            </label>
+            <label class="mode-option" [class.active]="mode === 'join'">
+              <input type="radio" name="mode" value="join" [(ngModel)]="mode">
+              <span class="material-icons">key</span>
+              <span>Entrar com código</span>
+            </label>
+            <label class="mode-option" [class.active]="mode === 'create'">
+              <input type="radio" name="mode" value="create" [(ngModel)]="mode">
+              <span class="material-icons">add_business</span>
+              <span>Criar organização</span>
+            </label>
+          </div>
+        </div>
+
+        @if (mode === 'join') {
+          <div class="field">
+            <label>Código do grupo</label>
+            <input type="text" [(ngModel)]="joinCode" name="joinCode" placeholder="Ex: ACNSB2026">
+            <small>Obtido com o administrador do seu grupo.</small>
+          </div>
+        }
+
+        @if (mode === 'create') {
+          <div class="org-create-section">
+            <h3><span class="material-icons">add_business</span> Nova Organização</h3>
+            <p class="org-create-hint">
+              Você será o <strong>Super Admin</strong> desta organização e poderá criar unidades, gerenciar membros e publicar eventos.
+            </p>
+            <div class="field">
+              <label>Nome da organização *</label>
+              <input type="text" [(ngModel)]="orgName" name="orgName" placeholder="Ex: Capoeira Bonfim">
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Cidade *</label>
+                <input type="text" [(ngModel)]="orgCity" name="orgCity" placeholder="Campinas">
+              </div>
+              <div class="field field--small">
+                <label>Estado *</label>
+                <input type="text" [(ngModel)]="orgState" name="orgState" placeholder="SP" maxlength="2"
+                       style="text-transform:uppercase">
+              </div>
+            </div>
+            <div class="field">
+              <label>Descrição (opcional)</label>
+              <textarea [(ngModel)]="orgDescription" name="orgDescription"
+                        placeholder="Descreva seu grupo de capoeira..." rows="2"></textarea>
+            </div>
+          </div>
+        }
+
+        @if (mode === 'none') {
+          <small class="hint-text">Sem código ou organização você verá apenas eventos públicos.</small>
+        }
+
+        <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+          @if (loading()) {
+            Criando conta…
+          } @else if (mode === 'create') {
+            Criar conta e organização
+          } @else {
+            Criar conta
+          }
+        </button>
+      </form>
+    }
+
+    <p class="helper">
+      Já tem conta?
+      <a routerLink="/login">Entrar</a>
+    </p>
+  </div>
+</div>
